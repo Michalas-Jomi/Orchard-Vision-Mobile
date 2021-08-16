@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   xmlns:map="http://schemas.android.com/apk/res-auto"
+                                                   xmlns:tools="http://schemas.android.com/tools"
+                                                   android:layout_width="match_parent"
+                                                   android:layout_height="match_parent">
+    <fragment
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment" map:layout_constraintTop_toTopOf="parent"
+            map:layout_constraintStart_toStartOf="parent" map:layout_constraintBottom_toBottomOf="parent"
+            map:layout_constraintEnd_toEndOf="parent" map:layout_constraintHorizontal_bias="0.0"
+            map:layout_constraintVertical_bias="1.0"/>
+    <Button
+            android:text="@string/pickupTree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/Map_PickupTree_Button"
+            map:layout_constraintBottom_toBottomOf="@+id/map" map:layout_constraintEnd_toEndOf="parent"
+            map:layout_constraintStart_toStartOf="@+id/map" map:layout_constraintTop_toTopOf="parent"
+            map:layout_constraintVertical_bias="0.07999998" android:textSize="24sp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
