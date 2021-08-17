@@ -1,17 +1,18 @@
 package me.jomi.orchardvision;
 
 import android.location.Location;
+import android.util.Pair;
 import com.google.android.gms.common.internal.Preconditions;
 import com.google.android.gms.maps.model.LatLng;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
-import java.util.Scanner;
+import java.net.URLEncoder;
+import java.util.*;
 
 public abstract class Func {
     public static LatLng toLatLng(Location location) {
@@ -35,6 +36,18 @@ public abstract class Func {
         throw (T) t;
     }
 
+    public static String[] stringArray(Collection<String> collection) {
+        List<String> list = new ArrayList<>(collection);
+        Collections.sort(list, (s1, s2) -> s1.toLowerCase().compareTo(s2.toLowerCase()));
+
+        String[] array = new String[list.size()];
+
+        for (int i=0; i < list.size(); i++)
+            array[i] = list.get(i);
+
+        return array;
+    }
+
 
     public static byte[] toByteArray(InputStream stream) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -49,6 +62,45 @@ public abstract class Func {
 
         return byteArrayOutputStream.toByteArray();
     }
+
+    public static byte[] getPostBytes(Pair<String, String>... data) throws UnsupportedEncodingException {
+        StringBuilder strB = new StringBuilder();
+
+        for (Pair<String, String> pair : data) {
+            if (strB.length() > 0)
+                strB.append('&');
+            strB.append(URLEncoder.encode(pair.first, "utf-8"))
+                    .append('=')
+                    .append(URLEncoder.encode(pair.second, "utf-8"));
+        }
+
+        return strB.toString().getBytes("utf-8");
+    }
+    public static String sendPostRequest(String url, Pair<String, String>... data) throws IOException {
+        byte[] dataBytes = Func.getPostBytes(data);
+
+        HttpURLConnection client = (HttpURLConnection) new URL(url).openConnection();
+
+        client.setDoOutput(true);
+        client.setUseCaches(false);
+        client.setInstanceFollowRedirects(false);
+
+        client.setRequestMethod("POST");
+        client.setRequestProperty("charset", "utf-8");
+        client.setRequestProperty("Content-Length", Integer.toString(dataBytes.length));
+
+        try(DataOutputStream wr = new DataOutputStream(client.getOutputStream())) {
+            wr.write(dataBytes);
+            wr.flush();
+        }
+
+        try {
+            return Func.readData(client.getInputStream());
+        } catch (FileNotFoundException e) {
+            return "";
+        }
+    }
+
 
     public static InputStream sendRequest(String url) throws IOException {
         HttpURLConnection client = (HttpURLConnection) new URL(url).openConnection();

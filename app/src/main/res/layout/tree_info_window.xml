@@ -3,23 +3,26 @@
              xmlns:app="http://schemas.android.com/apk/res-auto"
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
-             android:layout_height="match_parent" android:background="#37712D"
-             android:padding="10dp" android:id="@+id/tree_infoWindow_root">
+             android:layout_height="match_parent"
+             android:id="@+id/tree_infoWindow_root" android:background="#474444" android:layout_margin="10dp">
 
     <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:padding="5dp">
+            android:layout_height="match_parent" android:padding="5dp" android:layout_marginBottom="1dp"
+            android:background="#FFFFFF">
         <TextView
                 android:text="@string/treeType"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:layout_marginRight="5dp" android:layout_marginEnd="5dp"/>
+                android:layout_height="wrap_content" android:layout_marginRight="5dp" android:layout_marginEnd="5dp"
+        />
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_type_Text" tools:text="type"/>
     </TableRow>
     <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:padding="5dp">
+            android:layout_height="match_parent" android:padding="5dp" android:layout_marginBottom="1dp"
+            android:background="#FFFFFF">
         <TextView
                 android:text="@string/treeVariant"
                 android:layout_width="wrap_content"
@@ -31,7 +34,8 @@
     </TableRow>
     <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:padding="5dp">
+            android:layout_height="match_parent" android:padding="5dp" android:layout_marginBottom="1dp"
+            android:background="#FFFFFF">
         <TextView
                 android:text="@string/treePlanted"
                 android:layout_width="wrap_content"
@@ -43,7 +47,8 @@
     </TableRow>
     <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" android:padding="5dp">
+            android:layout_height="match_parent" android:padding="5dp" android:background="#FFFFFF"
+            android:layout_marginBottom="1dp">
         <TextView
                 android:text="@string/treeNote"
                 android:layout_width="wrap_content"
@@ -52,5 +57,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_note_Text"
                 tools:text="note"/>
+    </TableRow>
+    <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:padding="5dp" android:background="#FFFFFF"
+            android:paddingTop="15dp">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_edit_Button"
+                android:layout_span="2"
+                android:text="@string/holdToEdit" android:textSize="12sp"/>
     </TableRow>
 </TableLayout>

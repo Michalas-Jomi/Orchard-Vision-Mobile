@@ -2,8 +2,10 @@ package me.jomi.orchardvision;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import androidx.annotation.Nullable;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.*;
+import me.jomi.orchardvision.json.Json;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,8 +26,8 @@ public class Data {
 
         public Marker marker;
 
-        public JSONObject json;
-        public boolean json_isDownloading = false;
+        public Json json;
+        public boolean needDownload = true;
 
         public Tree(int id, String type, String variant, double latitude, double longitude) {
             this.id = id;
@@ -35,14 +37,55 @@ public class Data {
             this.longitude = longitude;
         }
 
+
         public void makeMaker(GoogleMap map) {
-            if (marker == null) {
-                marker = map.addMarker(new MarkerOptions().position(new LatLng(latitude, longitude)).alpha(.8f));
-                fromMarker.put(marker, this);
+            if (marker != null) {
+                fromMarker.remove(marker);
+                marker.remove();
             }
-            marker.setPosition(new LatLng(latitude, longitude));
-            marker.setIcon(markerIcon);
-            marker.setTitle(variant);
+            marker = map.addMarker(new MarkerOptions()
+                    .position(new LatLng(latitude, longitude))
+                    .alpha(.8f)
+                    .icon(markerIcon)
+                    .title(variant)
+            );
+            fromMarker.put(marker, this);
+        }
+
+
+        public void update(Json json) {
+            this.json = json;
+        }
+
+        public String jsonType() {
+            return json.getJson("variant").getJson("type").getString("name");
+        }
+        public String jsonVariant() {
+            return json.getJson("variant").getString("name");
+        }
+        public String jsonPlantingDate() {
+            return json.getString("planting_date");
+        }
+        public String jsonNote() {
+            return json.getString("note");
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(obj instanceof Tree))
+                return false;
+
+            Tree tree = (Tree) obj;
+            try {
+                assert this.id == tree.id;
+                assert this.type.equals(tree.type);
+                assert this.latitude == tree.latitude;
+                assert this.longitude == tree.longitude;
+                assert this.variant.equals(tree.variant);
+            } catch (AssertionError e) {
+                return false;
+            }
+            return true;
         }
     }
 
@@ -54,6 +97,21 @@ public class Data {
 
     protected static BitmapDescriptor markerIcon;
 
+
+
+    public static String[] getTypes() {
+        return Func.stringArray(types.keySet());
+    }
+    public static String[] getVariants(@Nullable  String type) {
+        if (types.containsKey(type)) {
+            return Func.stringArray(types.get(type));
+        } else {
+            List<String> list = new ArrayList<>();
+            for (List<String> variants : types.values())
+                list.addAll(variants);
+            return Func.stringArray(list);
+        }
+    }
 
     public static boolean isNeedDownload() {
         return needDownload;

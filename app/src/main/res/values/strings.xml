@@ -12,4 +12,5 @@
     <string name="pickupTree">Wskaż drzewo</string>
     <string name="loading">Wczytywanie...</string>
     <string name="accept">Zaakceptuj</string>
+    <string name="holdToEdit">Przytrzymaj Aby Edytować</string>
 </resources>

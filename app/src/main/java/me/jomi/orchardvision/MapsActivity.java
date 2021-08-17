@@ -2,7 +2,9 @@ package me.jomi.orchardvision;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -12,6 +14,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +29,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
+import me.jomi.orchardvision.json.Json;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,6 +78,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         pickUpTree.setOnClickListener(v -> {
             Log.d("picker", "Pickup tree");
+            if (curLatLng == null) {
+                Toast.makeText(MapsActivity.this, "Brak danych GPS", Toast.LENGTH_SHORT);
+                return;
+            }
+
             LatLng loc = curLatLng;
 
             Bundle data = new Bundle();
@@ -121,6 +130,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         mMap.setInfoWindowAdapter(this);
+        mMap.setOnInfoWindowLongClickListener(marker -> {
+            DialogInterface.OnClickListener yesListener = (dialog, which) -> {
+                if (which != DialogInterface.BUTTON_POSITIVE)
+                    return;
+
+                Data.Tree tree = Data.Tree.fromMarker.get(marker);
+                if (tree == null) return;
+
+                if (tree.json == null) {
+                    Toast.makeText(MapsActivity.this, "Trwa wczytywanie drzewa, spróbuj ponownie", Toast.LENGTH_LONG);
+                    return;
+                }
+
+                Bundle data = new Bundle();
+                data.putInt("id", tree.id);
+                data.putString("type", tree.jsonType());
+                data.putString("variant", tree.jsonVariant());
+                data.putString("planting_date", tree.jsonPlantingDate());
+                data.putString("note", tree.jsonNote());
+                ActivityCompat.startActivityForResult(this, new Intent(this, EditTreeActivity.class).putExtras(data), 0, data);
+
+            };
+            if (Data.Tree.fromMarker.containsKey(marker))
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setMessage("Chcesz Edytować to drzewo?")
+                        .setPositiveButton("Tak", yesListener)
+                        .setNegativeButton("Nie", null)
+                        .show();
+        });
 
         // Add a marker in Sydney and move the camera
         /*
@@ -129,6 +167,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         */
     }
+
+
+
+    // GPS
 
     private Marker curLocMaker;
     @Override
@@ -168,8 +210,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /// Google maps
 
-
-
     @Nullable
     @Override
     public View getInfoWindow(@NonNull Marker marker) {
@@ -184,6 +224,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         View root = LayoutInflater.from(this).inflate(R.layout.tree_info_window, null, false);
 
+        // Info
+
         TextView type    = root.findViewById(R.id.tree_infoWindow_type_Text);
         TextView variant = root.findViewById(R.id.tree_infoWindow_variant_Text);
         TextView planted = root.findViewById(R.id.tree_infoWindow_planted_Text);
@@ -194,41 +236,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             planted.setText(getText(R.string.loading));
             note.setText(getText(R.string.loading));
 
-            if (!tree.json_isDownloading) {
-                tree.json_isDownloading = true;
+            if (tree.needDownload) {
+                tree.needDownload = false;
                 new Thread(() -> {
                     try {
-                        JSONObject json = Func.sendRequestForJson(getString(R.string.serverUrl) + "broker/info/tree/" + tree.id);
-                        Log.d("json", json.toString());
-                        tree.json = json;
+                        String url = getString(R.string.serverUrl) + "broker/info/tree/" + tree.id;
+                        JSONObject json = Func.sendRequestForJson(url);
+                        Log.d("json tree", "Data received from \"" + url + "\": " + json.toString());
+                        tree.update(new Json(json));
                         mHandler.post(() -> {
                             if (marker.isInfoWindowShown())
                                 marker.showInfoWindow();
                         });
                         mHandler.postDelayed(() -> {
-                            tree.json = null;
+                            tree.needDownload = true;
                         }, 30_000L);
                     } catch (IOException e) {
                         Func.throwEx(e);
-                    } finally {
-                        tree.json_isDownloading = false;
                     }
                 }).start();
             }
-        } else {
+        }
+        if (tree.json != null) {
             try {
-                type   .setText(tree.json.getJSONObject("variant").getJSONObject("type").getString("name"));
-                variant.setText(tree.json.getJSONObject("variant").getString("name"));
-                planted.setText(tree.json.getString("planting_date"));
-                note   .setText(tree.json.getString("note"));
-            } catch (JSONException e) {
+                type   .setText(tree.jsonType());
+                variant.setText(tree.jsonVariant());
+                planted.setText(tree.jsonPlantingDate());
+                note   .setText(tree.jsonNote());
+            } catch (Throwable e) {
                 e.printStackTrace();
                 tree.json = null;
             }
         }
 
+        // Color
 
+        setBlackColor(root);
 
         return root;
+    }
+    private static void setBlackColor(View view) {
+        if (view instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) view;
+            for (int i=0; i < viewGroup.getChildCount(); i++) {
+                setBlackColor(viewGroup.getChildAt(i));
+            }
+        } else {
+            if (view instanceof TextView)
+                ((TextView) view).setTextColor(0xFF000000);
+        }
     }
 }

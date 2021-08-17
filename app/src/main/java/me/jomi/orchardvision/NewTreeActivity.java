@@ -3,6 +3,8 @@ package me.jomi.orchardvision;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Pair;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -21,9 +23,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Scanner;
 
-public class NewTreeActivity extends Activity {
+public class NewTreeActivity extends DetailTreeActivity {
     public static class Tree {
         public final String type;
         public final String variant;
@@ -85,43 +86,19 @@ public class NewTreeActivity extends Activity {
                 try {
                     _sendToServer(serverUrl);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Func.throwEx(e);
                 }
             }).start();
         }
-        private byte[] getPostBytes() throws UnsupportedEncodingException {
-            StringBuilder strB = new StringBuilder();
-
-            for (Pair<String, String> pair : new Pair[] {new Pair("type", type), new Pair("variant", variant), new Pair("age", String.valueOf(age)),
-                    new Pair("latitude", String.valueOf(loc.latitude)), new Pair("longitude", String.valueOf(loc.longitude))}) {
-                if (strB.length() > 0)
-                    strB.append('&');
-                strB.append(URLEncoder.encode(pair.first, "utf-8"))
-                        .append('=')
-                        .append(URLEncoder.encode(pair.second, "utf-8"));
-            }
-            return strB.toString().getBytes("utf-8");
-        }
         private void _sendToServer(String serverUrl) throws IOException {
-            String url = serverUrl + "broker/new/tree";
+            String response = Func.sendPostRequest(serverUrl + "broker/new/tree",
+                    new Pair("type", type),
+                    new Pair("variant", variant),
+                    new Pair("age", String.valueOf(age)),
+                    new Pair("latitude", String.valueOf(loc.latitude)),
+                    new Pair("longitude", String.valueOf(loc.longitude))
+            );
 
-            byte[] dataBytes = getPostBytes();
-
-            HttpURLConnection client = (HttpURLConnection) new URL(url).openConnection();
-
-            client.setDoOutput(true);
-            client.setUseCaches(false);
-            client.setInstanceFollowRedirects(false);
-
-            client.setRequestMethod("POST");
-            client.setRequestProperty("charset", "utf-8");
-            client.setRequestProperty("Content-Length", Integer.toString(dataBytes.length));
-
-            try(DataOutputStream wr = new DataOutputStream(client.getOutputStream())) {
-                wr.write(dataBytes);
-                wr.flush();
-            }
-            String response = Func.readData(client.getInputStream());
             int id = Integer.parseInt(response);
 
             dataTree = new Data.Tree(id, type, variant, loc.latitude, loc.longitude);
@@ -138,10 +115,7 @@ public class NewTreeActivity extends Activity {
     private double latitude;
     private double longitude;
 
-    private AutoCompleteTextView mType;
-    private AutoCompleteTextView mVariant;
     private EditText mAge;
-    private Button mConfirm;
 
 
     @Override
@@ -156,12 +130,14 @@ public class NewTreeActivity extends Activity {
         longitude = getIntent().getExtras().getDouble("longitude");
 
         // Views
-        mType = findViewById(R.id.NewTree_Type_Text);
+        mType    = findViewById(R.id.NewTree_Type_Text);
         mVariant = findViewById(R.id.NewTree_Variant_Text);
-        mAge = findViewById(R.id.NewTree_Age_Number);
+        mAge     = findViewById(R.id.NewTree_Age_Number);
         mConfirm = findViewById(R.id.NewTree_Confirm_Button);
 
         // Register
+        setupTypeVariant();
+
         mConfirm.setOnClickListener(v -> {
             Tree tree = new Tree(
                     new LatLng(latitude, longitude),
