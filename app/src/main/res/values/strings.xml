@@ -1,6 +1,15 @@
 <resources>
     <string name="app_name">Orchard Vision</string>
     <string name="title_activity_maps">Map</string>
+    <string name="serverUrl">http://6.tcp.eu.ngrok.io:16788/</string>
+
+    <string name="treeType">Gatunek</string>
+    <string name="treeVariant">Odmiana</string>
+    <string name="treePlanted">Zasadzono</string>
+    <string name="treeAge">Wiek</string>
+    <string name="treeNote">Notatka</string>
+
     <string name="pickupTree">Wskaż drzewo</string>
-    <string name="serverUrl">localhost:8000/</string>
+    <string name="loading">Wczytywanie...</string>
+    <string name="accept">Zaakceptuj</string>
 </resources>

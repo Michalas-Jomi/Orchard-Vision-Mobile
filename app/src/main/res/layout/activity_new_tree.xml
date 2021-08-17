@@ -8,16 +8,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" android:layout_margin="50px" android:id="@+id/tableLayout">
+            app:layout_constraintBottom_toBottomOf="parent" android:layout_margin="20dp" android:id="@+id/tableLayout">
 
         <TableRow android:layout_width="match_parent" android:layout_height="match_parent">
             <TextView
-                    android:text="Rodzaj"
+                    android:text="@string/treeType"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/textView" android:textSize="24sp"
+                    android:layout_height="wrap_content" android:textSize="24sp"
                     android:layout_gravity="center"/>
             <AutoCompleteTextView
-                    android:text="jabłoń, grusza"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:id="@+id/NewTree_Type_Text"
                     android:textSize="24sp"
@@ -25,12 +24,11 @@
         </TableRow>
         <TableRow android:layout_width="match_parent" android:layout_height="match_parent">
             <TextView
-                    android:text="Gatunek"
+                    android:text="@string/treeVariant"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/textView2" android:textSize="24sp"
+                    android:layout_height="wrap_content" android:textSize="24sp"
                     android:layout_gravity="center"/>
             <AutoCompleteTextView
-                    android:text="prezydent, herman"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:id="@+id/NewTree_Variant_Text"
                     android:textSize="24sp"
@@ -38,9 +36,9 @@
         </TableRow>
         <TableRow android:layout_width="match_parent" android:layout_height="match_parent">
             <TextView
-                    android:text="Wiek"
+                    android:text="@string/treeAge"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:id="@+id/textView3" android:textSize="24sp"
+                    android:layout_height="wrap_content" android:textSize="24sp"
                     android:layout_gravity="center"/>
             <EditText
                     android:layout_width="match_parent"
@@ -50,14 +48,13 @@
                     android:id="@+id/NewTree_Age_Number" android:textSize="24sp"
                     android:layout_gravity="clip_vertical" android:gravity="start"/>
         </TableRow>
-        <TableRow android:layout_width="match_parent" android:layout_height="match_parent">
-        </TableRow>
     </TableLayout>
     <Button
-            android:text="Zaakceptuj"
+            android:text="@string/accept"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:id="@+id/NewTree_Confirm_Button"
             app:layout_constraintEnd_toEndOf="@+id/tableLayout"
             app:layout_constraintStart_toStartOf="@+id/tableLayout"
-            app:layout_constraintBottom_toBottomOf="@+id/tableLayout"/>
+            app:layout_constraintBottom_toBottomOf="@+id/tableLayout"
+    />
 </androidx.constraintlayout.widget.ConstraintLayout>

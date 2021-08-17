@@ -3,13 +3,137 @@ package me.jomi.orchardvision;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Pair;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import androidx.annotation.Nullable;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Scanner;
 
 public class NewTreeActivity extends Activity {
+    public static class Tree {
+        public final String type;
+        public final String variant;
+        public final int age;
+
+        public final LatLng loc;
+
+        private Marker marker;
+        private Data.Tree dataTree;
+        private GoogleMap map;
+
+        public Tree(Bundle data) {
+            loc = new LatLng(data.getDouble("latitude"), data.getDouble("longitude"));
+
+            type = data.getString("type");
+            variant = data.getString("variant");
+            age = data.getInt("age");
+        }
+        public Tree(LatLng loc, String type, String variant, int age) {
+            this.loc = loc;
+
+            this.type = type;
+            this.variant = variant;
+            this.age = age;
+        }
+
+
+        public void serialize(Bundle data) {
+            data.putDouble("latitude",  loc.latitude);
+            data.putDouble("longitude", loc.longitude);
+
+            data.putString("type", type);
+            data.putString("variant", variant);
+            data.putInt("age", age);
+        }
+        public Bundle buildBundle() {
+            Bundle bundle = new Bundle();
+            serialize(bundle);
+            return bundle;
+        }
+
+
+        public void addMaker(GoogleMap map) {
+            if (dataTree != null && this.map == null) {
+                dataTree.makeMaker(map);
+            } else if (dataTree != null)
+                return;
+
+            this.map = map;
+            this.marker = map.addMarker(new MarkerOptions().position(loc).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+            if (Data.markerIcon != null) {
+                this.marker.setIcon(Data.markerIcon);
+            }
+        }
+
+        public void sendToServer(String serverUrl) {
+            new Thread(() -> {
+                try {
+                    _sendToServer(serverUrl);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+        private byte[] getPostBytes() throws UnsupportedEncodingException {
+            StringBuilder strB = new StringBuilder();
+
+            for (Pair<String, String> pair : new Pair[] {new Pair("type", type), new Pair("variant", variant), new Pair("age", String.valueOf(age)),
+                    new Pair("latitude", String.valueOf(loc.latitude)), new Pair("longitude", String.valueOf(loc.longitude))}) {
+                if (strB.length() > 0)
+                    strB.append('&');
+                strB.append(URLEncoder.encode(pair.first, "utf-8"))
+                        .append('=')
+                        .append(URLEncoder.encode(pair.second, "utf-8"));
+            }
+            return strB.toString().getBytes("utf-8");
+        }
+        private void _sendToServer(String serverUrl) throws IOException {
+            String url = serverUrl + "broker/new/tree";
+
+            byte[] dataBytes = getPostBytes();
+
+            HttpURLConnection client = (HttpURLConnection) new URL(url).openConnection();
+
+            client.setDoOutput(true);
+            client.setUseCaches(false);
+            client.setInstanceFollowRedirects(false);
+
+            client.setRequestMethod("POST");
+            client.setRequestProperty("charset", "utf-8");
+            client.setRequestProperty("Content-Length", Integer.toString(dataBytes.length));
+
+            try(DataOutputStream wr = new DataOutputStream(client.getOutputStream())) {
+                wr.write(dataBytes);
+                wr.flush();
+            }
+            String response = Func.readData(client.getInputStream());
+            int id = Integer.parseInt(response);
+
+            dataTree = new Data.Tree(id, type, variant, loc.latitude, loc.longitude);
+            MapsActivity.mHandler.post(() -> {
+                if (map != null) {
+                    if (marker != null)
+                        marker.remove();
+                    dataTree.makeMaker(map);
+                }
+            });
+        }
+    }
 
     private double latitude;
     private double longitude;

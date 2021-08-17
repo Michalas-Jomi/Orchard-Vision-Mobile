@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent" android:background="#37712D"
+             android:padding="10dp" android:id="@+id/tree_infoWindow_root">
+
+    <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:padding="5dp">
+        <TextView
+                android:text="@string/treeType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginRight="5dp" android:layout_marginEnd="5dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_type_Text" tools:text="type"/>
+    </TableRow>
+    <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:padding="5dp">
+        <TextView
+                android:text="@string/treeVariant"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginRight="5dp" android:layout_marginEnd="5dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_variant_Text"
+                tools:text="variant"/>
+    </TableRow>
+    <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:padding="5dp">
+        <TextView
+                android:text="@string/treePlanted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginRight="5dp" android:layout_marginEnd="5dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_planted_Text"
+                tools:text="planted Date"/>
+    </TableRow>
+    <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:padding="5dp">
+        <TextView
+                android:text="@string/treeNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginRight="5dp" android:layout_marginEnd="5dp"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/tree_infoWindow_note_Text"
+                tools:text="note"/>
+    </TableRow>
+</TableLayout>
