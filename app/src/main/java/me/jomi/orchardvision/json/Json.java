@@ -23,4 +23,8 @@ public class Json extends AbstractJson<String, JSONObject> {
     @Override public String    getString (String key) { return get(key, json::getString); }
     @Override public Json      getJson   (String key) { return new Json     (get(key, json::getJSONObject)); }
     @Override public JsonArray getArray  (String key) { return new JsonArray(get(key, json::getJSONArray)); }
+
+    public Iterable<String> keys() {
+        return json::keys;
+    }
 }

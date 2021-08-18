@@ -1,15 +1,14 @@
 package me.jomi.orchardvision;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -18,6 +17,8 @@ public class EditTreeActivity extends DetailTreeActivity {
 
     private EditText mPlanted;
     private EditText mNote;
+
+    private Button mDelete;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -31,6 +32,7 @@ public class EditTreeActivity extends DetailTreeActivity {
         mPlanted = findViewById(R.id.editTree_Planted_Date);
         mNote    = findViewById(R.id.editTree_Note_Text);
         mConfirm = findViewById(R.id.editTree_Confirm_Button);
+        mDelete  = findViewById(R.id.editTree_Delete_Button);
 
         Bundle data = getIntent().getExtras();
         mType.setText(data.getString("type"));
@@ -71,19 +73,13 @@ public class EditTreeActivity extends DetailTreeActivity {
                 }
 
                 if (ok) {
-                    new Thread(() -> {
-                        try {
-                            Func.sendPostRequest(EditTreeActivity.this.getString(R.string.serverUrl) + "broker/edit/tree",
-                                    new Pair<>("planting_data", new SimpleDateFormat("yyyy-MM-dd").format(date)),
-                                    new Pair<>("id", String.valueOf(id)),
-                                    new Pair<>("variant", variant),
-                                    new Pair<>("type", type),
-                                    new Pair<>("note", note)
-                            );
-                        } catch (IOException e) {
-                            Func.throwEx(e);
-                        }
-                    }).start();
+                    HttpUtils.editTree(__ -> HttpUtils.downloadTree(id),
+                            new Pair<>("planting_data", new SimpleDateFormat("yyyy-MM-dd").format(date)),
+                            new Pair<>("id", String.valueOf(id)),
+                            new Pair<>("variant", variant),
+                            new Pair<>("type", type),
+                            new Pair<>("note", note)
+                    );
 
                     EditTreeActivity.this.finish();
                 }
@@ -94,5 +90,14 @@ public class EditTreeActivity extends DetailTreeActivity {
                     view.setError(msg);
             }
         });
+
+        mDelete.setOnClickListener(v -> new AlertDialog.Builder(EditTreeActivity.this)
+                .setMessage("Czy napewno chcesz to drzewo?")
+                .setPositiveButton("Tak", ((dialog, which) -> {
+                    HttpUtils.deleteTree(treeId);
+                    EditTreeActivity.this.finish();
+                }))
+                .setNegativeButton("Nie", null)
+                .show());
     }
 }

@@ -61,11 +61,27 @@
                     android:inputType="textMultiLine"/>
         </TableRow>
     </TableLayout>
-    <Button
-            android:text="@string/accept"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/editTree_Confirm_Button"
-            android:layout_span="2"
-            app:layout_constraintBottom_toBottomOf="@+id/tableLayout2" app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" app:layout_constraintBottom_toBottomOf="@+id/tableLayout2"
+            app:layout_constraintEnd_toEndOf="@+id/tableLayout2"
+            app:layout_constraintStart_toStartOf="@+id/tableLayout2">
+
+        <Button
+                android:text="@string/delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/editTree_Delete_Button"
+                android:layout_span="2"
+                app:layout_constraintEnd_toEndOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/editTree_Confirm_Button"/>
+        <Button
+                android:text="@string/accept"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/editTree_Confirm_Button"
+                android:layout_span="2"
+                app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.25"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

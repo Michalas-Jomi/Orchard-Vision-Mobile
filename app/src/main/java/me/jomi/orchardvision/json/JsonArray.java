@@ -13,7 +13,7 @@ public class JsonArray extends AbstractJson<Integer, JSONArray> {
 
     @Override
     public int length() {
-        return length();
+        return json.length();
     }
 
     @Override public int       getInt    (Integer index) { return get(index, json::getInt); }

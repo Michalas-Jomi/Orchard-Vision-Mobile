@@ -1,14 +1,8 @@
 package me.jomi.orchardvision;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Pair;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.EditText;
 import androidx.annotation.Nullable;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,13 +10,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 
 public class NewTreeActivity extends DetailTreeActivity {
     public static class Tree {
@@ -69,7 +56,7 @@ public class NewTreeActivity extends DetailTreeActivity {
 
         public void addMaker(GoogleMap map) {
             if (dataTree != null && this.map == null) {
-                dataTree.makeMaker(map);
+                dataTree.makeMaker();
             } else if (dataTree != null)
                 return;
 
@@ -81,34 +68,26 @@ public class NewTreeActivity extends DetailTreeActivity {
             }
         }
 
-        public void sendToServer(String serverUrl) {
-            new Thread(() -> {
-                try {
-                    _sendToServer(serverUrl);
-                } catch (IOException e) {
-                    Func.throwEx(e);
+        public void sendToServer() {
+            HttpUtils.sendTree(id -> {
+                if (id == -1)
+                    return;
+
+                Data.addTypeVariant(type, variant);
+
+                dataTree = new Data.Tree(id, type, variant, loc.latitude, loc.longitude);
+                if (map != null) {
+                    if (marker != null)
+                        marker.remove();
+                    dataTree.makeMaker();
                 }
-            }).start();
-        }
-        private void _sendToServer(String serverUrl) throws IOException {
-            String response = Func.sendPostRequest(serverUrl + "broker/new/tree",
+            },
                     new Pair("type", type),
                     new Pair("variant", variant),
                     new Pair("age", String.valueOf(age)),
                     new Pair("latitude", String.valueOf(loc.latitude)),
                     new Pair("longitude", String.valueOf(loc.longitude))
             );
-
-            int id = Integer.parseInt(response);
-
-            dataTree = new Data.Tree(id, type, variant, loc.latitude, loc.longitude);
-            MapsActivity.mHandler.post(() -> {
-                if (map != null) {
-                    if (marker != null)
-                        marker.remove();
-                    dataTree.makeMaker(map);
-                }
-            });
         }
     }
 

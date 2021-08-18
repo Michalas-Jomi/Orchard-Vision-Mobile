@@ -29,16 +29,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
-import me.jomi.orchardvision.json.Json;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 
 @SuppressLint("MissingPermission")
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener, GoogleMap.InfoWindowAdapter {
 
-    private GoogleMap mMap;
+    public static GoogleMap mMap;
     private Button pickUpTree;
 
     private LocationManager locationManager;
@@ -57,11 +52,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         if (Data.isNeedDownload()) {
-            Data.download(getString(R.string.serverUrl), () -> mHandler.post(() -> {
-                    if (mMap != null)
-                        for (Data.Tree tree : Data.trees)
-                            tree.makeMaker(mMap);
-            }));
+            HttpUtils.init(json -> Data.init(json));
+            HttpUtils.downloadMarkerIcon(Data::initMarkerIcon);
         }
 
         // Perms
@@ -79,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         pickUpTree.setOnClickListener(v -> {
             Log.d("picker", "Pickup tree");
             if (curLatLng == null) {
-                Toast.makeText(MapsActivity.this, "Brak danych GPS", Toast.LENGTH_SHORT);
+                Toast.makeText(MapsActivity.this, "Brak danych GPS", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -104,8 +96,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             NewTreeActivity.Tree tree = new NewTreeActivity.Tree(data.getExtras());
 
             tree.addMaker(mMap);
-            tree.sendToServer(getString(R.string.serverUrl));
-            Toast.makeText(this, "Dodano nowe drzewo", Toast.LENGTH_LONG);
+            tree.sendToServer();
+            Toast.makeText(this, "Dodano nowe drzewo", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -125,9 +117,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
 
-        for (Data.Tree tree : Data.trees) {
-            tree.makeMaker(mMap);
-        }
+        for (Data.Tree tree : Data.trees)
+            tree.makeMaker();
+
 
         mMap.setInfoWindowAdapter(this);
         mMap.setOnInfoWindowLongClickListener(marker -> {
@@ -139,14 +131,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (tree == null) return;
 
                 if (tree.json == null) {
-                    Toast.makeText(MapsActivity.this, "Trwa wczytywanie drzewa, spróbuj ponownie", Toast.LENGTH_LONG);
+                    Toast.makeText(MapsActivity.this, "Trwa wczytywanie drzewa, spróbuj ponownie", Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 Bundle data = new Bundle();
                 data.putInt("id", tree.id);
-                data.putString("type", tree.jsonType());
-                data.putString("variant", tree.jsonVariant());
+                data.putString("type", tree.getType());
+                data.putString("variant", tree.getVariant());
                 data.putString("planting_date", tree.jsonPlantingDate());
                 data.putString("note", tree.jsonNote());
                 ActivityCompat.startActivityForResult(this, new Intent(this, EditTreeActivity.class).putExtras(data), 0, data);
@@ -231,36 +223,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         TextView planted = root.findViewById(R.id.tree_infoWindow_planted_Text);
         TextView note    = root.findViewById(R.id.tree_infoWindow_note_Text);
         if (tree.json == null) {
-            type.setText(tree.type);
-            variant.setText(tree.variant);
+            type.setText(tree.getType());
+            variant.setText(tree.getVariant());
             planted.setText(getText(R.string.loading));
             note.setText(getText(R.string.loading));
 
             if (tree.needDownload) {
                 tree.needDownload = false;
-                new Thread(() -> {
-                    try {
-                        String url = getString(R.string.serverUrl) + "broker/info/tree/" + tree.id;
-                        JSONObject json = Func.sendRequestForJson(url);
-                        Log.d("json tree", "Data received from \"" + url + "\": " + json.toString());
-                        tree.update(new Json(json));
-                        mHandler.post(() -> {
-                            if (marker.isInfoWindowShown())
-                                marker.showInfoWindow();
-                        });
-                        mHandler.postDelayed(() -> {
-                            tree.needDownload = true;
-                        }, 30_000L);
-                    } catch (IOException e) {
-                        Func.throwEx(e);
-                    }
-                }).start();
+                HttpUtils.downloadTree(tree.id);
             }
         }
         if (tree.json != null) {
             try {
-                type   .setText(tree.jsonType());
-                variant.setText(tree.jsonVariant());
+                type   .setText(tree.getType());
+                variant.setText(tree.getVariant());
                 planted.setText(tree.jsonPlantingDate());
                 note   .setText(tree.jsonNote());
             } catch (Throwable e) {

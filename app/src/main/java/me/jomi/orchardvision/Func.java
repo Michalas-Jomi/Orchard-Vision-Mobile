@@ -4,12 +4,12 @@ import android.location.Location;
 import android.util.Pair;
 import com.google.android.gms.common.internal.Preconditions;
 import com.google.android.gms.maps.model.LatLng;
+import me.jomi.orchardvision.interfaces.Consumer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
@@ -26,6 +26,7 @@ public abstract class Func {
         }
     }
 
+
     public static RuntimeException throwEx(Throwable t) {
         if (t == null)
             throw new NullPointerException();
@@ -35,6 +36,13 @@ public abstract class Func {
     private static <T extends Throwable> T _throwEx(Throwable t) throws T {
         throw (T) t;
     }
+
+
+    public static <T> void doForNonNull(T obj, Consumer<T> cons) {
+        if (obj != null)
+            cons.accept(obj);
+    }
+
 
     public static String[] stringArray(Collection<String> collection) {
         List<String> list = new ArrayList<>(collection);
@@ -62,55 +70,6 @@ public abstract class Func {
 
         return byteArrayOutputStream.toByteArray();
     }
-
-    public static byte[] getPostBytes(Pair<String, String>... data) throws UnsupportedEncodingException {
-        StringBuilder strB = new StringBuilder();
-
-        for (Pair<String, String> pair : data) {
-            if (strB.length() > 0)
-                strB.append('&');
-            strB.append(URLEncoder.encode(pair.first, "utf-8"))
-                    .append('=')
-                    .append(URLEncoder.encode(pair.second, "utf-8"));
-        }
-
-        return strB.toString().getBytes("utf-8");
-    }
-    public static String sendPostRequest(String url, Pair<String, String>... data) throws IOException {
-        byte[] dataBytes = Func.getPostBytes(data);
-
-        HttpURLConnection client = (HttpURLConnection) new URL(url).openConnection();
-
-        client.setDoOutput(true);
-        client.setUseCaches(false);
-        client.setInstanceFollowRedirects(false);
-
-        client.setRequestMethod("POST");
-        client.setRequestProperty("charset", "utf-8");
-        client.setRequestProperty("Content-Length", Integer.toString(dataBytes.length));
-
-        try(DataOutputStream wr = new DataOutputStream(client.getOutputStream())) {
-            wr.write(dataBytes);
-            wr.flush();
-        }
-
-        try {
-            return Func.readData(client.getInputStream());
-        } catch (FileNotFoundException e) {
-            return "";
-        }
-    }
-
-
-    public static InputStream sendRequest(String url) throws IOException {
-        HttpURLConnection client = (HttpURLConnection) new URL(url).openConnection();
-        client.setDoInput(true);
-
-        client.connect();
-
-        return client.getInputStream();
-    }
-
     public static String readData(InputStream inputStream) {
         StringBuilder strB = new StringBuilder();
         try (Scanner in = new Scanner(inputStream)) {
@@ -118,17 +77,5 @@ public abstract class Func {
                 strB.append(in.nextLine());
         }
         return strB.toString();
-    }
-    public static JSONObject sendRequestForJson(String url) throws IOException {
-        JSONObject json;
-
-        try {
-            String data = readData(Func.sendRequest(url));
-            json = new JSONObject(data);
-        } catch (JSONException e) {
-            throw Func.throwEx(e);
-        }
-
-        return json;
     }
 }
